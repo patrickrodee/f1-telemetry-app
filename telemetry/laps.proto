@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package telemetry;
+option go_package = "telemetry";
+
+enum PitStatus {
+  NONE = 0;
+  PITTING = 1;
+  IN_PIT_AREA = 2;
+}
+
+enum DriverStatus {
+  IN_GARAGE = 0;
+  FLYING_LAP = 1;
+  IN_LAP = 2;
+  OUT_LAP = 3;
+  ON_TRACK = 4;
+}
+
+enum ResultStatus {
+  INVALID = 0;
+  INACTIVE = 1;
+  ACTIVE = 2;
+  FINISHED = 3;
+  DISQUALIFIED = 4;
+  NOT_CLASSIFIED = 5;
+  RETIRED = 6;
+}
+
+message Lap {
+  float lastTime = 1;
+  float currentTime = 2;
+  float bestTime = 3;
+  float sector1Time = 4;
+  float sector2Time = 5;
+  float currentLapDistance = 6;
+  float totalDistanceTraveled = 7;
+  float deltaToSafetyCar = 8;
+  int32 carPosition = 9;
+  int32 currentLapNumber = 10;
+  PitStatus pitStatus = 11;
+  int32 sector = 12;
+  bool currentLapInvalid = 13;
+  int32 penalties = 14;
+  int32 gridPosition = 15;
+  DriverStatus driverStatus = 16;
+  ResultStatus resultStatus = 17;
+}
+
+message Laps {
+  repeated Lap lap = 1;
+}

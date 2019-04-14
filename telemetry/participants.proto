@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package telemetry;
+option go_package = "telemetry";
+
+message Participant {
+  bool Human = 1;
+  int32 RaceNumber = 4;
+  string TeamName = 2;
+  string DriverName = 3;
+  string Nationality = 5;
+  string DisplayName = 6;
+}
+
+message Participants {
+  repeated Participant participant = 1;
+}
