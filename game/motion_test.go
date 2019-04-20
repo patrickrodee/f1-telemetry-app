@@ -108,19 +108,24 @@ func TestNewMotionData(t *testing.T) {
 }
 
 func BenchmarkNewMotionData(b *testing.B) {
-	testData := initData()
+	testdata := make([]byte, motionByteActualSize)
+	rand.Read(testdata)
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		newMotionData(testData, 0)
+		newMotionData(testdata, 0)
 	}
 }
 
 func BenchmarkNewMotionDataWithReflection(b *testing.B) {
-	testData := initData()
+	if testing.Short() {
+		b.Skip()
+	}
+	testdata := make([]byte, motionByteActualSize)
+	rand.Read(testdata)
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		d := new(MotionData)
-		buf := bytes.NewBuffer(testData)
+		buf := bytes.NewBuffer(testdata)
 		err := binary.Read(buf, binary.LittleEndian, d)
 		if err != nil && err != io.EOF {
 			b.Error(err)

@@ -92,7 +92,7 @@ type MotionData struct {
 
 func newMotionData(b []byte, next int) (MotionData, int) {
 	var m MotionData
-	for i := 0; i < carMotionCount; i++ {
+	for i := range m.CarMotion {
 		m.CarMotion[i], next = newCarMotion(b, next)
 	}
 	m.SuspensionVelocity, next = newWheelData(b, next)
