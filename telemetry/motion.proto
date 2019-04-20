@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package telemetry;
+option go_package = "telemetry";
+
+message Motion {
+  float FrontWheelsAngle = 1;
+}

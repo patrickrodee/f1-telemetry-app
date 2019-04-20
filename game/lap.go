@@ -23,5 +23,5 @@ type Lap struct {
 
 // LapData provides the lap information of all drivers
 type LapData struct {
-	LapData [20]Lap
+	Laps [20]Lap
 }

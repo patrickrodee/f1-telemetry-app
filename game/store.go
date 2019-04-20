@@ -1,100 +1,81 @@
 package game
 
 import (
-	"bytes"
-	"encoding/binary"
 	"net"
+
+	"github.com/patrickrodee/f1-telemetry-app/observer"
 )
 
 // Store contains the parsed information from a UDP stream
 type Store struct {
-	motion  *MotionData
-	session *SessionData
-	lap     *LapData
+	Motion  observer.Observer
+	Session observer.Observer
+	Lap     observer.Observer
 }
+
+// Put updates the store
+func (s *Store) Put(b []byte) error {
+	h, next := newHeader(b, 0)
+	if h.ID == 0 {
+		s.putMotion(b, next)
+	}
+
+	// if h.ID == 1 {
+	// 	return s.putSession(buf)
+	// }
+
+	// if h.ID == 2 {
+	// 	return s.putLap(buf)
+	// }
+
+	return nil
+}
+
+func (s *Store) putMotion(b []byte, next int) {
+	m, _ := newMotionData(b, next)
+	s.Motion.Send(m)
+}
+
+// func (s *Store) putSession(buf *bytes.Buffer) error {
+// 	d := new(MotionData)
+// 	err := binary.Read(buf, binary.LittleEndian, d)
+// 	if err != nil && err != io.EOF {
+// 		return err
+// 	}
+// 	s.Session.Send(d)
+// 	return nil
+// }
+
+// func (s *Store) putLap(buf *bytes.Buffer) error {
+// 	d := new(LapData)
+// 	err := binary.Read(buf, binary.LittleEndian, d)
+// 	if err != nil && err != io.EOF {
+// 		return err
+// 	}
+// 	s.Lap.Send(d)
+// 	return nil
+// }
 
 // NewStore creates and returns a new store
-func NewStore() *Store {
-	return &Store{}
-}
-
-// ReadMotion returns the store's motion information
-func (s Store) ReadMotion() *MotionData {
-	return s.motion
-}
-
-// WriteMotion writes new motion data to the store
-func (s *Store) WriteMotion(b *bytes.Buffer) error {
-	d := new(MotionData)
-	if err := binary.Read(b, binary.LittleEndian, d); err != nil {
-		return err
+func NewStore(buflen int) *Store {
+	return &Store{
+		Motion:  observer.NewObserver(buflen),
+		Session: observer.NewObserver(buflen),
+		Lap:     observer.NewObserver(buflen),
 	}
-	s.motion = d
-	return nil
-}
-
-// WriteSession writes new session data to the store
-func (s *Store) WriteSession(b *bytes.Buffer) error {
-	d := new(SessionData)
-	if err := binary.Read(b, binary.LittleEndian, d); err != nil {
-		return err
-	}
-	s.session = d
-	return nil
-}
-
-// WriteLap writes new lap data to the store
-func (s *Store) WriteLap(b *bytes.Buffer) error {
-	d := new(LapData)
-	if err := binary.Read(b, binary.LittleEndian, d); err != nil {
-		return err
-	}
-	s.lap = d
-	return nil
-}
-
-// ReadLap returns the store's lap information
-func (s Store) ReadLap() *LapData {
-	return s.lap
 }
 
 // Start starts up a new game store
-func (s Store) Start(addr *net.UDPAddr) error {
-	conn, err := net.ListenUDP("udp", addr)
-	if err != nil {
-		return err
-	}
+func (s Store) Start(conn *net.UDPConn) error {
 	defer conn.Close()
-
 	b := make([]byte, 1341)
 	for {
 		if _, err := conn.Read(b); err != nil {
 			return err
 		}
 
-		buf := bytes.NewBuffer(b)
-		hb := bytes.NewBuffer(buf.Next(headerSize))
-		h := new(header)
-		if err := binary.Read(hb, binary.LittleEndian, h); err != nil {
+		if err := s.Put(b); err != nil {
 			return err
-		}
-
-		if h.ID == 0 {
-			if err := s.WriteMotion(buf); err != nil {
-				return err
-			}
-		}
-
-		if h.ID == 1 {
-			if err := s.WriteSession(buf); err != nil {
-				return err
-			}
-		}
-
-		if h.ID == 2 {
-			if err := s.WriteLap(buf); err != nil {
-				return err
-			}
 		}
 	}
 }

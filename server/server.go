@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 
+	"github.com/patrickrodee/f1-telemetry-app/game"
 	"google.golang.org/grpc"
 )
 
@@ -13,7 +14,12 @@ var (
 	port = flag.Int("port", 10000, "The server port")
 )
 
-type f1server struct {
+type F1 struct {
+	store *game.Store
+}
+
+func NewF1() *F1 {
+	return &F1{game.NewStore()}
 }
 
 func main() {
