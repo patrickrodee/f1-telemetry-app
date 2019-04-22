@@ -36,9 +36,14 @@ func (o *observer) Deregister(ch chan<- interface{}) {
 }
 
 func (o *observer) Send(v interface{}) {
-	if o != nil {
-		o.input <- v
+	if o == nil {
+		return
 	}
+	// Shift the oldest value to make space for the new one
+	if len(o.input) == cap(o.input) {
+		<-o.input
+	}
+	o.input <- v
 }
 
 func (o *observer) Close() error {

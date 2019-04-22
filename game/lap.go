@@ -53,10 +53,10 @@ type LapData struct {
 	Laps [20]Lap
 }
 
-func newLapData(b []byte, next int) (LapData, int) {
+func newLapData(b []byte, next int) LapData {
 	var l LapData
 	for i := range l.Laps {
 		l.Laps[i], next = newLap(b, next)
 	}
-	return l, next
+	return l
 }

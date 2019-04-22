@@ -1,5 +1,11 @@
 package game
 
+const (
+	nameByteSize              = 48
+	participantByteSize       = 1082
+	participantByteActualSize = participantByteSize - headerSize
+)
+
 var teamNames = map[uint8]string{
 	0:  "Mercedes",
 	1:  "Ferrari",
@@ -43,6 +49,18 @@ type Participant struct {
 	Name         [48]byte
 }
 
+func newParticipant(b []byte, next int) (Participant, int) {
+	var p Participant
+	p.AIControlled, next = bsuint8(b, next)
+	p.DriverID, next = bsuint8(b, next)
+	p.TeamID, next = bsuint8(b, next)
+	p.RaceNumber, next = bsuint8(b, next)
+	p.Nationality, next = bsuint8(b, next)
+	end := next + nameByteSize
+	copy(p.Name[:], b[next:end])
+	return p, end
+}
+
 // IsHuman provides the humanity of the driver
 func (p Participant) IsHuman() bool {
 	return p.AIControlled == 0
@@ -62,6 +80,15 @@ func (p Participant) DriverName() string {
 type ParticipantData struct {
 	NumCars      uint8
 	Participants [20]Participant
+}
+
+func newParticipantData(b []byte, next int) ParticipantData {
+	var p ParticipantData
+	p.NumCars, next = bsuint8(b, next)
+	for i := range p.Participants {
+		p.Participants[i], next = newParticipant(b, next)
+	}
+	return p
 }
 
 // ActiveParticipants provides only the subset of active drivers

@@ -1,5 +1,10 @@
 package game
 
+const (
+	sessionByteSize       = 147
+	sessionByteActualSize = sessionByteSize - headerSize
+)
+
 var (
 	zoneFlags = map[int8]string{
 		-1: "Unknown",
@@ -82,6 +87,13 @@ type MarshalZone struct {
 	ZoneFlag  int8
 }
 
+func newMarshalZone(b []byte, next int) (MarshalZone, int) {
+	var m MarshalZone
+	m.ZoneStart, next = bsfloat32(b, next)
+	m.ZoneFlag, next = bsint8(b, next)
+	return m, next
+}
+
 // CurrentFlag returns the current flag in human-readable form
 func (m MarshalZone) CurrentFlag() string {
 	return zoneFlags[m.ZoneFlag]
@@ -113,6 +125,32 @@ type SessionData struct {
 	MarshalZones        [21]MarshalZone
 	SafetyCarStatus     uint8
 	NetworkGame         uint8
+}
+
+func newSessionData(b []byte, next int) SessionData {
+	var s SessionData
+	s.Weather, next = bsuint8(b, next)
+	s.TrackTemperature, next = bsint8(b, next)
+	s.AirTemperature, next = bsint8(b, next)
+	s.TotalLaps, next = bsuint8(b, next)
+	s.TrackLength, next = bsuint16(b, next)
+	s.SessionType, next = bsuint8(b, next)
+	s.TrackID, next = bsint8(b, next)
+	s.Era, next = bsuint8(b, next)
+	s.SessionTimeLeft, next = bsuint16(b, next)
+	s.SessionDuration, next = bsuint16(b, next)
+	s.PitSpeedLimit, next = bsuint8(b, next)
+	s.GamePaused, next = bsuint8(b, next)
+	s.IsSpectating, next = bsuint8(b, next)
+	s.SpectatorCarIndex, next = bsuint8(b, next)
+	s.SliProNativeSupport, next = bsuint8(b, next)
+	s.NumMarshalZones, next = bsuint8(b, next)
+	for i := range s.MarshalZones {
+		s.MarshalZones[i], next = newMarshalZone(b, next)
+	}
+	s.SafetyCarStatus, next = bsuint8(b, next)
+	s.NetworkGame, next = bsuint8(b, next)
+	return s
 }
 
 // CurrentWeather provides the weather in human-readable form

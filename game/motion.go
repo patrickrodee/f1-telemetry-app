@@ -90,7 +90,7 @@ type MotionData struct {
 	FrontWheelsAngle       float32
 }
 
-func newMotionData(b []byte, next int) (MotionData, int) {
+func newMotionData(b []byte, next int) MotionData {
 	var m MotionData
 	for i := range m.CarMotion {
 		m.CarMotion[i], next = newCarMotion(b, next)
@@ -110,5 +110,5 @@ func newMotionData(b []byte, next int) (MotionData, int) {
 	m.AngularAccelerationY, next = bsfloat32(b, next)
 	m.AngularAccelerationZ, next = bsfloat32(b, next)
 	m.FrontWheelsAngle, next = bsfloat32(b, next)
-	return m, next
+	return m
 }

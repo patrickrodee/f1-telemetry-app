@@ -8,61 +8,59 @@ import (
 
 // Store contains the parsed information from a UDP stream
 type Store struct {
-	Motion  observer.Observer
-	Session observer.Observer
-	Lap     observer.Observer
+	Motion      observer.Observer
+	Session     observer.Observer
+	Lap         observer.Observer
+	Participant observer.Observer
+	Setup       observer.Observer
 }
-
-// Put updates the store
-func (s *Store) Put(b []byte) error {
-	h, next := newHeader(b, 0)
-	if h.ID == 0 {
-		s.putMotion(b, next)
-	}
-
-	// if h.ID == 1 {
-	// 	return s.putSession(buf)
-	// }
-
-	// if h.ID == 2 {
-	// 	return s.putLap(buf)
-	// }
-
-	return nil
-}
-
-func (s *Store) putMotion(b []byte, next int) {
-	m, _ := newMotionData(b, next)
-	s.Motion.Send(m)
-}
-
-// func (s *Store) putSession(buf *bytes.Buffer) error {
-// 	d := new(MotionData)
-// 	err := binary.Read(buf, binary.LittleEndian, d)
-// 	if err != nil && err != io.EOF {
-// 		return err
-// 	}
-// 	s.Session.Send(d)
-// 	return nil
-// }
-
-// func (s *Store) putLap(buf *bytes.Buffer) error {
-// 	d := new(LapData)
-// 	err := binary.Read(buf, binary.LittleEndian, d)
-// 	if err != nil && err != io.EOF {
-// 		return err
-// 	}
-// 	s.Lap.Send(d)
-// 	return nil
-// }
 
 // NewStore creates and returns a new store
 func NewStore(buflen int) *Store {
 	return &Store{
-		Motion:  observer.NewObserver(buflen),
-		Session: observer.NewObserver(buflen),
-		Lap:     observer.NewObserver(buflen),
+		Motion:      observer.NewObserver(buflen),
+		Session:     observer.NewObserver(buflen),
+		Lap:         observer.NewObserver(buflen),
+		Participant: observer.NewObserver(buflen),
+		Setup:       observer.NewObserver(buflen),
 	}
+}
+
+// Put updates the store
+func (s *Store) Put(b []byte) {
+	h, next := newHeader(b, 0)
+	switch h.ID {
+	case 0:
+		s.putMotion(b, next)
+	case 1:
+		s.putSession(b, next)
+	case 2:
+		s.putLap(b, next)
+	case 4:
+		s.putParticipant(b, next)
+	case 5:
+		s.putSetup(b, next)
+	}
+}
+
+func (s *Store) putMotion(b []byte, next int) {
+	s.Motion.Send(newMotionData(b, next))
+}
+
+func (s *Store) putSession(b []byte, next int) {
+	s.Session.Send(newSessionData(b, next))
+}
+
+func (s *Store) putLap(b []byte, next int) {
+	s.Lap.Send(newLapData(b, next))
+}
+
+func (s *Store) putParticipant(b []byte, next int) {
+	s.Participant.Send(newParticipantData(b, next))
+}
+
+func (s *Store) putSetup(b []byte, next int) {
+	s.Setup.Send(newSetupData(b, next))
 }
 
 // Start starts up a new game store
@@ -74,8 +72,6 @@ func (s Store) Start(conn *net.UDPConn) error {
 			return err
 		}
 
-		if err := s.Put(b); err != nil {
-			return err
-		}
+		s.Put(b)
 	}
 }

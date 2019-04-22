@@ -6,11 +6,11 @@ import (
 )
 
 type stuff struct {
-	V int
+	A, B, C int
 }
 
-func newStuff(v int) *stuff {
-	return &stuff{v}
+func newStuff() *stuff {
+	return new(stuff)
 }
 
 func TestObserver(t *testing.T) {
@@ -31,7 +31,7 @@ func TestObserver(t *testing.T) {
 		}()
 	}
 
-	o.Send(newStuff(10))
+	o.Send(nil)
 	wg.Wait()
 }
 
@@ -49,7 +49,7 @@ func BenchmarkDirectSend(b *testing.B) {
 	go echoer(chin, chout)
 
 	for i := 0; i < b.N; i++ {
-		chin <- nil
+		chin <- new(stuff)
 		<-chout
 	}
 }
@@ -62,7 +62,7 @@ func BenchmarkSend(b *testing.B) {
 	o.Register(chout)
 
 	for i := 0; i < b.N; i++ {
-		o.Send(nil)
+		o.Send(new(stuff))
 		<-chout
 	}
 }
@@ -76,7 +76,7 @@ func BenchmarkParallelSend(b *testing.B) {
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			o.Send(nil)
+			o.Send(new(stuff))
 			<-chout
 		}
 	})

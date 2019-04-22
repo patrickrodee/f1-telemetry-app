@@ -95,7 +95,7 @@ func initData() []byte {
 func TestNewMotionData(t *testing.T) {
 	testdata := make([]byte, motionByteActualSize)
 	rand.Read(testdata)
-	got, _ := newMotionData(testdata, 0)
+	got := newMotionData(testdata, 0)
 	var want MotionData
 	buf := bytes.NewBuffer(testdata)
 	err := binary.Read(buf, binary.LittleEndian, &want)

@@ -51,3 +51,8 @@ func bsint16(b []byte, start int) (int16, int) {
 	v, end := bsuint16(b, start)
 	return int16(v), end
 }
+
+func bsbytes(b []byte, start, size int) ([]byte, int) {
+	end := start + size
+	return b[start:end], end
+}
