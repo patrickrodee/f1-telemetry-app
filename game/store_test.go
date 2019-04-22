@@ -25,3 +25,20 @@ func BenchmarkPutAndReceive(b *testing.B) {
 		}
 	})
 }
+
+func BenchmarkPutWithoutReceive(b *testing.B) {
+	s := NewStore(100)
+	defer s.Motion.Close()
+	bytes := make([]byte, 1341)
+	if _, err := rand.Read(bytes); err != nil {
+		b.Error(err)
+	}
+	bytes[3] = 0
+	b.ResetTimer()
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			s.Put(bytes)
+		}
+	})
+}

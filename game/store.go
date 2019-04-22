@@ -13,6 +13,7 @@ type Store struct {
 	Lap         observer.Observer
 	Participant observer.Observer
 	Setup       observer.Observer
+	Telemetry   observer.Observer
 }
 
 // NewStore creates and returns a new store
@@ -23,6 +24,7 @@ func NewStore(buflen int) *Store {
 		Lap:         observer.NewObserver(buflen),
 		Participant: observer.NewObserver(buflen),
 		Setup:       observer.NewObserver(buflen),
+		Telemetry:   observer.NewObserver(buflen),
 	}
 }
 
@@ -40,6 +42,8 @@ func (s *Store) Put(b []byte) {
 		s.putParticipant(b, next)
 	case 5:
 		s.putSetup(b, next)
+	case 6:
+		s.putTelemetry(b, next)
 	}
 }
 
@@ -61,6 +65,10 @@ func (s *Store) putParticipant(b []byte, next int) {
 
 func (s *Store) putSetup(b []byte, next int) {
 	s.Setup.Send(newSetupData(b, next))
+}
+
+func (s *Store) putTelemetry(b []byte, next int) {
+	s.Telemetry.Send(newTelemetryData(b, next))
 }
 
 // Start starts up a new game store

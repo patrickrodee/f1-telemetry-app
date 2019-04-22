@@ -53,7 +53,7 @@ func newCarMotion(b []byte, next int) (CarMotion, int) {
 	return m, next
 }
 
-// WheelData provides information for all wheels of a single car
+// WheelData provides data for all wheels of a single car
 type WheelData struct {
 	RearLeft   float32
 	RearRight  float32
